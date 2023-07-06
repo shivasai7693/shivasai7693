@@ -1,0 +1,57 @@
+/* ***************************************************************************
+FORMULA NAME : Work From Anywhere Entry Validation
+FORMULA TYPE : Global Absence Entry Validation
+DESCRIPTION  : 
+Name          Date        Comments
+--------------------------------------------------------------------------------------------
+Shiva Sai Prasad   24-Jun-2023  Initial Version
+
+***************************************************************************** */
+
+DEFAULT FOR IV_START_DATE IS '1951/01/01 00:00:00' (date)
+DEFAULT FOR IV_END_DATE IS '4712/12/31 00:00:00' (date)
+DEFAULT FOR IV_TOTALDURATION IS 0
+DEFAULT FOR ANC_ABS_TYP_NAME IS 'X'
+DEFAULT FOR PER_ASG_GRADE_CODE IS 'X'
+DEFAULT FOR PER_ASG_ATTRIBUTE5 IS 'X'
+DEFAULT FOR IV_LOGGED_IN_USER_ROLE IS 'X'
+
+INPUTS ARE IV_START_DATE (date),
+           IV_END_DATE (date),
+           IV_TOTALDURATION (Number),
+		   IV_LOGGED_IN_USER_ROLE
+		   
+l_monthly_duration	=	0
+l_total_duration	=	0
+l_logged_in_type	=	IV_LOGGED_IN_USER_ROLE
+l_start_date        = 	IV_START_DATE
+l_end_date			=	IV_END_DATE
+l_person_id 		= 	GET_CONTEXT(PERSON_ID,0)
+
+l_duration 	    	= 	IV_TOTALDURATION
+l_monthly_duration	= 	TO_NUMBER(GET_VALUE_SET('FHH_HCM_WFA_MONTHLY_DURATION','|=P_PERSON_ID='''||TO_CHAR(l_person_id)||''''||'|P_EFFECTIVE_DATE='''||TO_CHAR(l_start_date,'YYYY/MM/DD')||''''))
+l_total_duration	=	l_duration + l_monthly_duration
+
+VALID               = 'Y'
+ERROR_MESSAGE       = 'Success'
+
+IF l_logged_in_type = 'EMP' AND l_total_duration > 1
+THEN
+(
+	VALID = 'N'
+	ERROR_MESSAGE = 'FHH_WORK_FROM_ANYWHERE_MESSAGE'
+)
+IF l_logged_in_type = 'MGR' AND l_total_duration > 1
+THEN
+(
+	VALID = 'Y'
+	ERROR_MESSAGE       = 'Success'
+)
+IF l_logged_in_type = 'ADMIN' AND l_total_duration > 1
+THEN
+(
+	VALID = 'Y'
+	ERROR_MESSAGE       = 'Success'
+)
+
+RETURN VALID, ERROR_MESSAGE
